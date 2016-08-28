@@ -342,11 +342,11 @@ PlayerSettings:
   scriptingDefineSymbols: {}
   metroPackageName: AudioCanvas
   metroPackageVersion: 1.0.0.0
-  metroCertificatePath: 
+  metroCertificatePath: Assets\WSATestCertificate.pfx
   metroCertificatePassword: 
-  metroCertificateSubject: 
-  metroCertificateIssuer: 
-  metroCertificateNotAfter: 0000000000000000
+  metroCertificateSubject: DefaultCompany
+  metroCertificateIssuer: DefaultCompany
+  metroCertificateNotAfter: 803081f9a31fd301
   metroApplicationDescription: AudioCanvas
   wsaImages: {}
   metroTileShortName: 
