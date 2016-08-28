@@ -21,6 +21,11 @@ public class EventTest : MonoBehaviour {
         EventManager.StopListening("test", testListener);
     }
 
+    void Destroy()
+    {
+        EventManager.StopListening("test", testListener);
+    }
+
     void TestFunction()
     {
         Debug.Log("Test function was called");
