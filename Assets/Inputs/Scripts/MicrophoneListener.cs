@@ -36,11 +36,30 @@ public class MicrophoneListener : MonoBehaviour
     //and rename it to "Volume"
     public AudioMixer masterMixer;
 
-
     float timeSinceRestart = 0;
+
+    public float rmsValue;
+    public float dbValue;
+    public float pitchValue;
+
+    int qSamples = 64;
+    float refValue = 0.1f;
+    float threshold = 0.02f;
+
+    float[] _samples;
+    float[] _spectrum;
+    float _fSample;
+
+    int debugCount = 0;
 
     void Start()
     {
+        _samples = new float[qSamples];
+        _spectrum = new float[qSamples];
+        _fSample = AudioSettings.outputSampleRate;
+
+        //src = GetComponent<AudioSource>();
+
         //start the microphone listener
         if (startMicOnStartup)
         {
@@ -70,7 +89,8 @@ public class MicrophoneListener : MonoBehaviour
         //can choose to unmute sound from inspector if desired
         DisableSound(!disableOutputSound);
 
-
+        debugCount++;
+        AnalyzeSound();
     }
 
     //stops everything and returns audioclip to null
@@ -141,11 +161,68 @@ public class MicrophoneListener : MonoBehaviour
                 while (!(Microphone.GetPosition(null) > 0))
                 {
                 }
-
+                
                 src.Play(); // Play the audio source
             }
         }
     }
 
+
+
+
+    void AnalyzeSound()
+    {
+        Debug.Log("i was called");
+        src.GetOutputData(_samples, 0);
+        float sum = 0;
+        for (int i = 0; i < qSamples; i++)
+        {
+            sum = +_samples[i] * _samples[i];
+        }
+        //Debug.Log("sum is this: " + sum);
+        rmsValue = Mathf.Sqrt(sum / qSamples);
+        dbValue = 20 * Mathf.Log10(rmsValue / refValue);
+        if (dbValue < -160)
+        {
+            dbValue = -160;
+        }
+
+        src.GetSpectrumData(_spectrum, 0, FFTWindow.BlackmanHarris);
+        float maxV = 0;
+        var maxN = 0;
+        float note;
+        for (int i = 0; i < qSamples; i++)
+        {
+            //Debug.Log("spec: " + _spectrum[i]);
+            if (!(_spectrum[i] > maxV) || !(_spectrum[i] > threshold))
+            {
+                continue;
+            }
+            maxV = _spectrum[i];
+            maxN = i;
+
+        }
+        float freqN = maxN;
+        if (maxN > 0 && maxN < qSamples - 1)
+        {
+            var dL = _spectrum[maxN - 1] / _spectrum[maxN];
+            var dR = _spectrum[maxN + 1] / _spectrum[maxN];
+            freqN += 0.5f * (dR * dR - dL * dL);
+
+            pitchValue = freqN * (_fSample / 2) / qSamples;
+        }
+        if (debugCount % 10 == 0)
+        {
+            note = GetNote(pitchValue);
+            Debug.Log("note value: " + note);
+        }
+        
+    }
+
+    float GetNote(float frequency)
+    {
+        var roundedNoteFreq = (12 * Mathf.Log(frequency / 440f)) / Mathf.Log(2);
+        return roundedNoteFreq;
+    }
 }
 
