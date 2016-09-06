@@ -25,8 +25,12 @@ public class RemoteHeadManager : Singleton<RemoteHeadManager>
     /// </summary>
     Dictionary<long, RemoteHeadInfo> remoteHeads = new Dictionary<long, RemoteHeadInfo>();
 
+    CustomMessages customMessages;
+
     void Start()
     {
+        customMessages = CustomMessages.Instance;
+
         CustomMessages.Instance.MessageHandlers[CustomMessages.TestMessageID.HeadTransform] = this.UpdateHeadTransform;
 
         SharingSessionTracker.Instance.SessionJoined += Instance_SessionJoined;
@@ -42,7 +46,7 @@ public class RemoteHeadManager : Singleton<RemoteHeadManager>
         Vector3 headPosition = this.transform.InverseTransformPoint(headTransform.position);
         Quaternion headRotation = Quaternion.Inverse(this.transform.rotation) * headTransform.rotation;
 
-        CustomMessages.Instance.SendHeadTransform(headPosition, headRotation);
+        CustomMessages.Instance.SendHeadTransform(headPosition, headRotation, 0x1);
     }
 
     /// <summary>

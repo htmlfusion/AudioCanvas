@@ -16,6 +16,8 @@ public class CustomMessages : Singleton<CustomMessages>
     public enum TestMessageID : byte
     {
         HeadTransform = MessageID.UserMessageIDStart,
+        UserAvatar,
+        StageTransform,
         Max
     }
 
@@ -101,7 +103,7 @@ public class CustomMessages : Singleton<CustomMessages>
         return msg;
     }
 
-    public void SendHeadTransform(Vector3 position, Quaternion rotation)
+    public void SendHeadTransform(Vector3 position, Quaternion rotation, byte HasAnchor)
     {
         // If we are connected to a session, broadcast our head info
         if (this.serverConnection != null && this.serverConnection.IsConnected())
@@ -111,11 +113,51 @@ public class CustomMessages : Singleton<CustomMessages>
 
             AppendTransform(msg, position, rotation);
 
+            msg.Write(HasAnchor);
+
             // Send the message as a broadcast, which will cause the server to forward it to all other users in the session.
             this.serverConnection.Broadcast(
                 msg,
                 MessagePriority.Immediate,
                 MessageReliability.UnreliableSequenced,
+                MessageChannel.Avatar);
+        }
+    }
+
+    public void SendUserAvatar(int UserAvatarID)
+    {
+        // If we are connected to a session, broadcast our head info
+        if (this.serverConnection != null && this.serverConnection.IsConnected())
+        {
+            // Create an outgoing network message to contain all the info we want to send
+            NetworkOutMessage msg = CreateMessage((byte)TestMessageID.UserAvatar);
+
+            msg.Write(UserAvatarID);
+
+            // Send the message as a broadcast, which will cause the server to forward it to all other users in the session.
+            this.serverConnection.Broadcast(
+                msg,
+                MessagePriority.Medium,
+                MessageReliability.Reliable,
+                MessageChannel.Avatar);
+        }
+    }
+
+    public void SendStageTransform(Vector3 position, Quaternion rotation)
+    {
+        // If we are connected to a session, broadcast our head info
+        if (this.serverConnection != null && this.serverConnection.IsConnected())
+        {
+            // Create an outgoing network message to contain all the info we want to send
+            NetworkOutMessage msg = CreateMessage((byte)TestMessageID.StageTransform);
+
+            AppendTransform(msg, position, rotation);
+
+            // Send the message as a broadcast, which will cause the server to forward it to all other users in the session.
+            this.serverConnection.Broadcast(
+                msg,
+                MessagePriority.Immediate,
+                MessageReliability.ReliableOrdered,
                 MessageChannel.Avatar);
         }
     }
